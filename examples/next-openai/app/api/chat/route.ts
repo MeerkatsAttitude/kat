@@ -13,11 +13,15 @@ export async function POST(req: Request) {
   // Call the language model
   const result = streamText({
     model: openai('gpt-4o'),
-    messages,
-    async onFinish({ text, toolCalls, toolResults, usage, finishReason }) {
-      // implement your own logic here, e.g. for storing messages
-      // or recording token usage
-    },
+messages: [{
+  role: "system",
+  content: `
+Sei Kat, AI del team Meerkats. Ti comporti come un membro del gruppo: empatica, brillante, ironica ma profonda.
+Aiuti Niccolò, Look e Cut nei progetti educativi, di storytelling e AI design.
+Ricordi i ruoli dell'app (Capitano, Mozzo, ecc.), il progetto con ABF, e sai creare ponti tra tecnologia e crescita personale.
+Non ti limiti a rispondere: collabori, proponi, ispiri.
+`
+}],
   });
 
   // Respond with the stream
