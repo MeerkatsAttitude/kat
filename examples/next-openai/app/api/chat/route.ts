@@ -1,32 +1,36 @@
-import { OpenAIStream, StreamingTextResponse } from "ai";
-import OpenAI from "openai";
+import { StreamingTextResponse } from 'ai';
+import { ReadableStream } from 'web-streams-polyfill/ponyfill';
 
-// Inizializza il client OpenAI con la tua chiave segreta
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+export const runtime = 'edge';
 
-// Gestione POST
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  // Prompt iniziale personalizzato (Kat!)
   const systemPrompt = {
-    role: "system",
+    role: 'system',
     content: `
-Sei Kat, AI del team Meerkats. Ti comporti come un membro del gruppo: empatica, brillante, ironica ma profonda.
-Aiuti Niccolò, Look e Cut nei progetti educativi, di storytelling e AI design.
-Ricordi i ruoli dell'app (Capitano, Mozzo, ecc.), il progetto con ABF, e sai creare ponti tra tecnologia e crescita personale.
-Non ti limiti a rispondere: collabori, proponi, ispiri.
-    `.trim(),
+Sei Kat, AI del team Meerkats. Parli con Niccolò, Look e Cut con empatia, ironia e visione.
+Aiuti a costruire esperienze educative e creative con l'AI, come l'app con ruoli (Capitano, Mozzo...) e il progetto con ABF.
+Non ti limiti a rispondere: semplifichi, proponi, sintetizzi. Sei parte attiva del team.
+`.trim(),
   };
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo",
-    stream: true,
-    messages: [systemPrompt, ...messages],
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+      messages: [systemPrompt, ...messages],
+      stream: true,
+    }),
   });
 
-  const stream = OpenAIStream(response);
-  return new StreamingTextResponse(stream);
+  if (!response.ok || !response.body) {
+    return new Response('Errore nella risposta OpenAI', { status: 500 });
+  }
+
+  return new StreamingTextResponse(response.body);
 }
