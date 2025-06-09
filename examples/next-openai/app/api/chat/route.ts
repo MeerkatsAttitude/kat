@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 // Inizializza il client OpenAI con la tua chiave segreta
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Gestione POST
